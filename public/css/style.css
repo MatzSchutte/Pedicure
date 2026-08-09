@@ -449,6 +449,7 @@ footer .footer-icon {
   margin: 0 auto 12px;
 }
 footer p { margin: 0 0 6px; }
+footer a { color: var(--primary-dark); }
 
 /* ---------- Sticky mobile CTA ---------- */
 .sticky-cta {
