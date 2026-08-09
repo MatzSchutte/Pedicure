@@ -166,14 +166,49 @@
   function renderSpecialList(items) {
     const list = document.getElementById('specialList');
     if (items.length === 0) { list.innerHTML = '<p style="color:#857a74;">Geen eenmalige aanpassingen.</p>'; return; }
-    list.innerHTML = items.map(s => `
+
+    // Groepeer opeenvolgende 'closed' dagen met dezelfde notitie tot één periode
+    const sorted = [...items].sort((a, b) => a.date.localeCompare(b.date));
+    const groups = [];
+    let current = null;
+    for (const item of sorted) {
+      const isClosedFullDay = item.type === 'closed' && !item.start_time;
+      const prevDate = current ? new Date(current.items[current.items.length - 1].date + 'T00:00:00') : null;
+      const thisDate = new Date(item.date + 'T00:00:00');
+      const isConsecutive = prevDate && (thisDate - prevDate) === 86400000;
+      if (isClosedFullDay && current && current.type === 'closed' && current.note === (item.note || '') && isConsecutive) {
+        current.items.push(item);
+      } else {
+        current = { type: item.type, note: item.note || '', items: [item] };
+        groups.push(current);
+      }
+    }
+
+    list.innerHTML = groups.map(g => {
+      const ids = g.items.map(i => i.id).join(',');
+      if (g.type === 'closed') {
+        const label = g.items.length > 1
+          ? `${g.items[0].date} t/m ${g.items[g.items.length - 1].date}`
+          : g.items[0].date;
+        return `
+        <div class="list-item">
+          <div>${label} &middot; Geblokkeerd${g.note ? ' &middot; ' + escapeHtml(g.note) : ''}</div>
+          <button class="delete-btn" data-ids="${ids}">✕</button>
+        </div>`;
+      }
+      const it = g.items[0];
+      return `
       <div class="list-item">
-        <div>${s.date} &middot; ${s.type === 'closed' ? 'Geblokkeerd' : 'Extra: ' + s.start_time + '-' + s.end_time}
-          ${s.note ? ' &middot; ' + escapeHtml(s.note) : ''}</div>
-        <button class="delete-btn" data-id="${s.id}">✕</button>
-      </div>`).join('');
+        <div>${it.date} &middot; Extra: ${it.start_time}-${it.end_time}${it.note ? ' &middot; ' + escapeHtml(it.note) : ''}</div>
+        <button class="delete-btn" data-ids="${it.id}">✕</button>
+      </div>`;
+    }).join('');
+
     list.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', async () => {
-      await api('/admin/special-availability/' + b.dataset.id, { method: 'DELETE' });
+      const ids = b.dataset.ids.split(',');
+      for (const id of ids) {
+        await api('/admin/special-availability/' + id, { method: 'DELETE' });
+      }
       loadAvailability();
     }));
   }
@@ -188,6 +223,21 @@
     try {
       await api('/admin/special-availability', { method: 'POST', body: JSON.stringify({ date, type, start_time, end_time, note }) });
       loadAvailability();
+    } catch (err) { alert(err.message); }
+  });
+
+  document.getElementById('addRangeBtn').addEventListener('click', async () => {
+    const date_from = document.getElementById('rangeFrom').value;
+    const date_to = document.getElementById('rangeTo').value;
+    const note = document.getElementById('rangeNote').value;
+    if (!date_from || !date_to) { alert('Vul een startdatum en einddatum in.'); return; }
+    try {
+      const result = await api('/admin/special-availability/range', { method: 'POST', body: JSON.stringify({ date_from, date_to, note }) });
+      document.getElementById('rangeFrom').value = '';
+      document.getElementById('rangeTo').value = '';
+      document.getElementById('rangeNote').value = '';
+      loadAvailability();
+      alert(`${result.count} dag(en) geblokkeerd van ${date_from} t/m ${date_to}.`);
     } catch (err) { alert(err.message); }
   });
 
@@ -216,6 +266,32 @@
       loadAvailability();
     } catch (err) { alert(err.message); }
   });
+
+  // ---------- WhatsApp-bevestiging ----------
+  function toWhatsAppDigits(phone) {
+    let digits = (phone || '').replace(/[^0-9+]/g, '');
+    if (digits.startsWith('+')) digits = digits.slice(1);
+    if (digits.startsWith('0')) digits = '31' + digits.slice(1);
+    else if (!digits.startsWith('31')) digits = '31' + digits;
+    return digits;
+  }
+
+  function buildConfirmMessage(a) {
+    const dateNL = new Date(a.date + 'T00:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+    const loc = a.location_type === 'huis' ? 'bij jou thuis' : 'in de praktijk (Hazelaarstraat 3, Lutten)';
+    return `Hoi ${a.customer_name}! Je afspraak voor ${a.treatment_name} op ${dateNL} om ${a.start_time} ${loc} is bevestigd. Tot dan! - Bianca, Pedicure Bianca Passmann`;
+  }
+
+  async function confirmAndWhatsApp(appt) {
+    try {
+      await api('/admin/appointments/' + appt.id, { method: 'PUT', body: JSON.stringify({ status: 'bevestigd' }) });
+      const waNumber = toWhatsAppDigits(appt.phone);
+      const msg = buildConfirmMessage(appt);
+      window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    } catch (err) {
+      alert(err.message);
+    }
+  }
 
   // ---------- Afspraken ----------
   async function loadAppointments() {
@@ -253,6 +329,7 @@
                 <td>${a.location_type === 'huis' ? 'Aan huis' : 'Praktijk'}</td>
                 <td><span class="badge badge-${a.status}">${a.status}</span></td>
                 <td>
+                  ${a.status !== 'bevestigd' && a.status !== 'geannuleerd' ? `<button class="action-btn" data-confirm="${a.id}" style="color:var(--success)">Bevestigen ✓</button>` : ''}
                   <button class="action-btn" data-edit="${a.id}">Bewerken</button>
                   <button class="action-btn" data-cancel="${a.id}" style="color:var(--danger)">Annuleren</button>
                 </td>
@@ -261,6 +338,12 @@
         </table>`;
       container.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () =>
         openAppointmentModal(rows.find(r => r.id == btn.dataset.edit))));
+      container.querySelectorAll('[data-confirm]').forEach(btn => btn.addEventListener('click', async () => {
+        const appt = rows.find(r => r.id == btn.dataset.confirm);
+        await confirmAndWhatsApp(appt);
+        renderAppointmentsTable();
+        loadDashboard();
+      }));
       container.querySelectorAll('[data-cancel]').forEach(btn => btn.addEventListener('click', async () => {
         if (!confirm('Weet je zeker dat je deze afspraak wilt annuleren?')) return;
         await api('/admin/appointments/' + btn.dataset.cancel, { method: 'PUT', body: JSON.stringify({ status: 'geannuleerd' }) });

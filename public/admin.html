@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beheer | Pedicure Bianca Passmann</title>
+<link rel="icon" href="assets/favicon.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/admin.css">
@@ -12,7 +13,8 @@
 
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
-    <h1 class="brand">Pedicure Bianca Passmann</h1>
+    <img src="assets/logo-icon.png" alt="Pedicure Bianca Passmann" style="width:180px;margin:0 auto 12px;">
+    <h1 class="brand" style="justify-content:center;">Pedicure Bianca Passmann</h1>
     <p class="section-intro" style="margin-bottom:24px;">Log in om je afspraken en beschikbaarheid te beheren.</p>
     <div id="loginError"></div>
     <div class="form-group"><label for="usernameInput">Gebruikersnaam</label><input type="text" id="usernameInput" autocomplete="username"></div>
@@ -23,7 +25,7 @@
 
 <div id="adminApp" class="admin-app" style="display:none;">
   <header class="admin-header">
-    <p class="brand">Beheer &middot; Bianca Passmann</p>
+    <p class="brand"><img src="assets/logo-icon.png" alt="" style="width:28px;height:auto;">Beheer &middot; Bianca Passmann</p>
     <button class="btn btn-secondary" id="logoutBtn">Uitloggen</button>
   </header>
 
@@ -78,6 +80,15 @@
         </div>
         <div class="form-group"><label>Notitie</label><input type="text" id="specialNote" placeholder="bijv. vakantie"></div>
         <button class="btn btn-secondary" id="addSpecialBtn">Toevoegen</button>
+      </div>
+
+      <h3 style="margin-top:28px;">Periode blokkeren (meerdere dagen, bijv. vakantie)</h3>
+      <p class="section-intro" style="margin:0 0 12px;text-align:left;max-width:none;">Handig om in één keer een hele week of langere periode af te sluiten, in plaats van elke dag apart.</p>
+      <div class="inline-form">
+        <div class="form-group"><label>Van</label><input type="date" id="rangeFrom"></div>
+        <div class="form-group"><label>Tot en met</label><input type="date" id="rangeTo"></div>
+        <div class="form-group"><label>Notitie</label><input type="text" id="rangeNote" placeholder="bijv. zomervakantie"></div>
+        <button class="btn btn-primary" id="addRangeBtn">Periode blokkeren</button>
       </div>
 
       <h3 style="margin-top:36px;">Tijd blokkeren</h3>

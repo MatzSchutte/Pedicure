@@ -67,6 +67,44 @@ router.delete('/admin/special-availability/:id', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
+// Periode in één keer blokkeren (bijv. vakantie van meerdere dagen)
+router.post('/admin/special-availability/range', requireAdmin, (req, res) => {
+  const { date_from, date_to, note } = req.body || {};
+  if (!date_from || !date_to) {
+    return res.status(400).json({ error: 'Vul een startdatum en einddatum in.' });
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date_from) || !/^\d{4}-\d{2}-\d{2}$/.test(date_to)) {
+    return res.status(400).json({ error: 'Ongeldige datum.' });
+  }
+  if (date_to < date_from) {
+    return res.status(400).json({ error: 'De einddatum moet op of na de startdatum liggen.' });
+  }
+
+  const start = new Date(date_from + 'T00:00:00');
+  const end = new Date(date_to + 'T00:00:00');
+  const diffDays = Math.round((end - start) / 86400000);
+  if (diffDays > 366) {
+    return res.status(400).json({ error: 'Deze periode is te lang (maximaal 1 jaar in één keer).' });
+  }
+
+  const dates = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().slice(0, 10));
+  }
+
+  const tx = db.transaction((allDates) => {
+    const del = db.prepare(`DELETE FROM special_availability WHERE date = ? AND type = 'closed' AND (start_time IS NULL OR start_time = '')`);
+    const ins = db.prepare(`INSERT INTO special_availability (date, start_time, end_time, type, note) VALUES (?, NULL, NULL, 'closed', ?)`);
+    for (const dt of allDates) {
+      del.run(dt);
+      ins.run(dt, note || '');
+    }
+  });
+  tx(dates);
+
+  res.json({ success: true, count: dates.length });
+});
+
 // Tijd blokkeren
 router.post('/admin/blocked-times', requireAdmin, (req, res) => {
   const { date, start_time, end_time, reason } = req.body || {};

@@ -69,7 +69,7 @@
       grid.innerHTML = '<p style="text-align:center;grid-column:1/-1;">Er zijn op dit moment geen behandelingen beschikbaar.</p>';
       return;
     }
-    const treatmentIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3c-1.7 0-2.6 1.9-2.3 3.6.2 1.1.9 1.9.9 3 0 1.6-1.6 2.5-1.6 4.9 0 3 2.1 5 4.6 5 2.9 0 3.9-2 3.9-4.3 0-2.9-1.4-3.9-1.9-6.1C11.1 6.8 11 3 8 3z"/></svg>`;
+    const treatmentIcon = `<img src="assets/logo-icon.png" alt="" style="width:28px;height:auto;object-fit:contain;">`;
     const clockIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
     grid.innerHTML = state.treatments.map(t => `
       <div class="card">
