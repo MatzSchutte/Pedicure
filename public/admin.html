@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beheer | Pedicure Bianca Passmann</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <h1 class="brand">Pedicure Bianca Passmann</h1>
+    <p class="section-intro" style="margin-bottom:24px;">Log in om je afspraken en beschikbaarheid te beheren.</p>
+    <div id="loginError"></div>
+    <div class="form-group"><label for="usernameInput">Gebruikersnaam</label><input type="text" id="usernameInput" autocomplete="username"></div>
+    <div class="form-group"><label for="passwordInput">Wachtwoord</label><input type="password" id="passwordInput" autocomplete="current-password"></div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;">Inloggen</button>
+  </div>
+</div>
+
+<div id="adminApp" class="admin-app" style="display:none;">
+  <header class="admin-header">
+    <p class="brand">Beheer &middot; Bianca Passmann</p>
+    <button class="btn btn-secondary" id="logoutBtn">Uitloggen</button>
+  </header>
+
+  <nav class="admin-nav">
+    <button class="nav-btn active" data-tab="dashboard">Dashboard</button>
+    <button class="nav-btn" data-tab="agenda">Agenda</button>
+    <button class="nav-btn" data-tab="beschikbaarheid">Beschikbaarheid</button>
+    <button class="nav-btn" data-tab="afspraken">Afspraken</button>
+    <button class="nav-btn" data-tab="behandelingen">Behandelingen</button>
+    <button class="nav-btn" data-tab="website">Website</button>
+  </nav>
+
+  <main class="admin-main">
+
+    <section id="tab-dashboard" class="admin-tab">
+      <h2>Dashboard</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-value" id="statToday">–</span><span class="stat-label">Afspraken vandaag</span></div>
+        <div class="stat-card"><span class="stat-value" id="statWeek">–</span><span class="stat-label">Afspraken deze week</span></div>
+        <div class="stat-card" id="statNextCard"><span class="stat-value" id="statNext">–</span><span class="stat-label">Eerstvolgende afspraak</span></div>
+      </div>
+    </section>
+
+    <section id="tab-agenda" class="admin-tab" style="display:none;">
+      <h2>Agenda</h2>
+      <div class="form-group" style="max-width:220px;">
+        <label for="agendaDate">Datum</label>
+        <input type="date" id="agendaDate">
+      </div>
+      <div id="agendaList"></div>
+    </section>
+
+    <section id="tab-beschikbaarheid" class="admin-tab" style="display:none;">
+      <h2>Mijn beschikbaarheid</h2>
+      <h3>Weekschema</h3>
+      <div id="weekScheduleEditor"></div>
+      <button class="btn btn-primary" id="saveWeekScheduleBtn">Opslaan</button>
+
+      <h3 style="margin-top:36px;">Eenmalige aanpassingen &amp; vakanties</h3>
+      <div id="specialList"></div>
+      <div class="inline-form">
+        <div class="form-group"><label>Datum</label><input type="date" id="specialDate"></div>
+        <div class="form-group"><label>Type</label>
+          <select id="specialType">
+            <option value="closed">Dag blokkeren / vakantie</option>
+            <option value="extra">Extra beschikbaarheid</option>
+          </select>
+        </div>
+        <div class="form-group" id="specialTimesGroup" style="display:none;">
+          <label>Van</label><input type="time" id="specialStart">
+          <label>Tot</label><input type="time" id="specialEnd">
+        </div>
+        <div class="form-group"><label>Notitie</label><input type="text" id="specialNote" placeholder="bijv. vakantie"></div>
+        <button class="btn btn-secondary" id="addSpecialBtn">Toevoegen</button>
+      </div>
+
+      <h3 style="margin-top:36px;">Tijd blokkeren</h3>
+      <div id="blockedList"></div>
+      <div class="inline-form">
+        <div class="form-group"><label>Datum</label><input type="date" id="blockDate"></div>
+        <div class="form-group"><label>Van</label><input type="time" id="blockStart"></div>
+        <div class="form-group"><label>Tot</label><input type="time" id="blockEnd"></div>
+        <div class="form-group"><label>Reden</label><input type="text" id="blockReason"></div>
+        <button class="btn btn-secondary" id="addBlockBtn">Blokkeren</button>
+      </div>
+    </section>
+
+    <section id="tab-afspraken" class="admin-tab" style="display:none;">
+      <h2>Afspraken</h2>
+      <div class="inline-form">
+        <div class="form-group"><label>Van</label><input type="date" id="filterFrom"></div>
+        <div class="form-group"><label>Tot</label><input type="date" id="filterTo"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="filterStatus">
+            <option value="">Alle</option>
+            <option value="aangevraagd">Aangevraagd</option>
+            <option value="bevestigd">Bevestigd</option>
+            <option value="geannuleerd">Geannuleerd</option>
+            <option value="voltooid">Voltooid</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" id="filterBtn">Filteren</button>
+        <button class="btn btn-primary" id="newAppointmentBtn">+ Nieuwe afspraak</button>
+      </div>
+      <div id="appointmentsTable"></div>
+    </section>
+
+    <section id="tab-behandelingen" class="admin-tab" style="display:none;">
+      <h2>Behandelingen</h2>
+      <button class="btn btn-primary" id="newTreatmentBtn">+ Behandeling toevoegen</button>
+      <div id="treatmentsAdminList"></div>
+    </section>
+
+    <section id="tab-website" class="admin-tab" style="display:none;">
+      <h2>Website</h2>
+      <div id="websiteError"></div>
+      <div class="form-group"><label>Praktijknaam</label><input type="text" id="setBusinessName"></div>
+      <div class="form-group"><label>Telefoonnummer</label><input type="text" id="setBusinessPhone"></div>
+      <div class="form-group"><label>Adres</label><input type="text" id="setBusinessAddress"></div>
+      <div class="form-group"><label>Hero-titel</label><input type="text" id="setHeroHeadline"></div>
+      <div class="form-group"><label>Hero-subtitel</label><input type="text" id="setHeroSubheadline"></div>
+      <div class="form-group"><label>Over Bianca-tekst</label><textarea id="setAboutText" rows="4"></textarea></div>
+      <button class="btn btn-primary" id="saveWebsiteBtn">Opslaan</button>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal voor afspraak/behandeling bewerken -->
+<div id="modalOverlay" class="modal-overlay" style="display:none;">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
