@@ -1,6 +1,6 @@
 (function () {
   const STORAGE_KEY = 'pbp_cookie_consent'; // 'accepted' | 'rejected'
-  const GA_ID = 'G-51XPQP53L4';
+  const GA_ID = 'G-DQZV2YQ387';
   let gaLoaded = false;
 
   function getConsent() {
@@ -65,7 +65,14 @@
     showBanner();
   };
 
+  function attachSettingsButtons() {
+    document.querySelectorAll('.js-cookie-settings').forEach((btn) => {
+      btn.addEventListener('click', showBanner);
+    });
+  }
+
   function init() {
+    attachSettingsButtons();
     const consent = getConsent();
     if (consent === 'accepted') {
       loadAnalytics();
